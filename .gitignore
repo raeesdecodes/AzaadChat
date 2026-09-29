@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+.vercel/
+
+# env files (never commit real secrets)
+.env*
+!.env.example
+
+# local JSON-file storage used in development
+data/
+
+# logs / misc
+*.log
+*.tsbuildinfo
+.DS_Store
