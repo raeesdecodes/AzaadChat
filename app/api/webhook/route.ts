@@ -5,9 +5,8 @@
  *                      URL in the Meta developer dashboard.
  * POST /api/webhook — receives Instagram + Facebook Page events.
  *
- * The POST handler always answers 200 quickly: events are logged and
- * contacts upserted first, then automation runs WITHOUT awaiting it
- * (fire-and-forget), so Meta never times out. Automation order per event:
+ * The POST handler logs events and upserts contacts, then awaits automation
+ * before answering 200. Automation order per event:
  *   1. visual flows (first enabled flow whose trigger node matches)
  *   2. legacy quick-reply keyword triggers (fallback)
  * Errors are logged, never thrown.
@@ -116,10 +115,12 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
   }
 
-  // Process automation AFTER responding — never block the 200.
-  void processEvents(events).catch((err) =>
-    console.error('[webhook] background processing failed', err),
-  );
+  // Run automation before responding; serverless runtimes may freeze afterward.
+  try {
+    await processEvents(events);
+  } catch (err) {
+    console.error('[webhook] background processing failed', err);
+  }
 
   return new Response('EVENT_RECEIVED', { status: 200 });
 }
@@ -205,7 +206,7 @@ function normalizePayload(body: unknown): NormalizedEvent[] {
 }
 
 // ---------------------------------------------------------------------------
-// Background processing (never awaited by the POST handler)
+// Automation processing
 // ---------------------------------------------------------------------------
 async function processEvents(events: NormalizedEvent[]): Promise<void> {
   const store = getStore();
