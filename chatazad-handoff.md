@@ -67,6 +67,7 @@
   - Debug note: Auth.js v5 = cookie `authjs.session-token`, **salt = cookie name** (not `""`); `trustHost: true` zaroori
   - ⚠️ **Vercel mein `AUTH_SECRET` add karna baqi** (`openssl rand -base64 32`)
 - Next code: **Step 3 (OAuth connect flow)** — user poochh kar bola hai "continue" toh yahi agla hai
-- **Sab kuch COMMIT + PUSH ho chuka hai — `4a748b5` (master → Vercel auto-deploy)**: AGENTS.md, handoff/checklist docs, auth (auth.ts, middleware, login/signup, [...nextauth]), lib/crypto.ts + smoke scripts, users table, .env.example (AUTH_SECRET + ENCRYPTION_KEY)
+- **Sab kuch COMMIT + PUSH ho chuka hai — `4a748b5` + `53164f5` (master → Vercel auto-deploy)**: AGENTS.md, handoff/checklist docs, auth (auth.ts, middleware, login/signup, [...nextauth]), lib/crypto.ts + smoke scripts, users table, .env.example (AUTH_SECRET + ENCRYPTION_KEY)
+- **`AUTH_SECRET` Vercel par SET + LIVE ✅ (1 Oct)** — ab prod email-login kaam karta hai
+- **PROD E2E PASS ✅ (1 Oct)**: real signup (multipart form → 303 `/login?created=1`, user prod DB mein) → login (302 + `__Secure-authjs.session-token`) → `/settings`+`/`+`/broadcasts` = **200** session ke saath; bina session/galat password = **307**. Test account: `prod-smoke3@example.com` (throwaway, baad mein hata sakte hain)
 - Resume files: `AGENTS.md` (bootstrap), `chatazad-handoff.md` (ye), `chatazad-dev-checklist.md` (code)
-- Vercel env mein **`AUTH_SECRET` add karna abhi bhi baqi** (`openssl rand -base64 32`) — warna prod email-login session nahi dega (legacy password gate chalta rahega)

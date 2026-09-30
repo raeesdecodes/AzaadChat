@@ -15,7 +15,7 @@
 - [x] `AUTH_SECRET` `.env.example` mein doc
 - [x] DB: `users` table (`db/schema.sql` + `lib/store.ts`: `createUser`/`findUserByEmail`, Postgres + JSON fallback)
 - [x] Tests: store smoke ✅ (`scripts/smoke-auth.mts`), HTTP E2E ✅ (login 302 → `/settings` 200, wrong-pass 307, gate 307), `npm run build` PASS
-- ⚠️ **Vercel par `AUTH_SECRET` set karna baqi** (tab tak prod mein email login session nahi dega; legacy password gate chalta rahega)
+- [x] **PROD LIVE TEST ✅ (1 Oct)**: `AUTH_SECRET` Vercel par set; real signup → login → `/settings` 200; bina session 307 (1 test-account `prod-smoke3@example.com` prod DB mein)
 
 ### ✅ Step 2 — Token encryption util (`lib/crypto.ts`)  ← DONE (30 Sep 2026 raat)
 - [x] AES-256-GCM `encryptToken(plain)` / `decryptToken(enc)` with `ENCRYPTION_KEY` (32-byte hex)
