@@ -2,7 +2,9 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { AuthError } from 'next-auth';
 import { SESSION_COOKIE, sessionToken, passwordList } from '@/lib/auth';
+import { signIn } from '@/auth';
 
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
@@ -54,4 +56,24 @@ export async function loginAction(formData: FormData): Promise<void> {
 export async function logoutAction(): Promise<void> {
   cookies().delete(SESSION_COOKIE);
   redirect('/login');
+}
+
+/** v2 account sign-in (email + password) via Auth.js credentials. */
+export async function credentialsLoginAction(formData: FormData): Promise<void> {
+  const next = safeNext(String(formData.get('next') ?? ''));
+  const email = String(formData.get('email') ?? '')
+    .trim()
+    .toLowerCase();
+  const password = String(formData.get('password') ?? '');
+
+  try {
+    await signIn('credentials', { email, password, redirectTo: next });
+  } catch (error) {
+    // AuthError = wrong credentials; NEXT_REDIRECT on success must propagate.
+    if (error instanceof AuthError) {
+      const params = new URLSearchParams({ error: '1', next });
+      redirect(`/login?${params.toString()}`);
+    }
+    throw error;
+  }
 }

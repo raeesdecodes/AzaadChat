@@ -59,3 +59,11 @@ CREATE TABLE IF NOT EXISTS settings (
   value       TEXT NOT NULL,
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Registered ChatAzad users (v2 email/password auth, bcrypt hashes)
+CREATE TABLE IF NOT EXISTS users (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email         TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);

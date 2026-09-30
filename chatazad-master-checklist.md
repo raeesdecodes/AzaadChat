@@ -70,12 +70,13 @@ Meta App Review iske baghair approve nahi karta.
 
 ## 🔒 PHASE 2 — v1 Hardening (public se PEHLE zaroor)
 
-### 2.1 🧑 Page Access Token ROTATE karo (ZAROORI!)
+### 2.1 🧑 Page Access Token ROTATE karo (ZAROORI!) ✅ DONE (30 Sep 2026)
 Chat mein kabhi raw token aaya tha — public launch se pehle badlo:
-- [ ] Meta dashboard → naye **Page access token** generate karo (kabhi chat mein paste mat karo)
-- [ ] Vercel → Environment Variables → `META_PAGE_ACCESS_TOKEN` update → **Redeploy**
-- [ ] Purana token revoke karo
-- [ ] Test: dashboard Test button → Activity mein events aa rahe hain
+- [x] Meta dashboard → naya **Page access token** generate kiya — **Never-expire** (user token → extend → `/me/accounts` trick se) ✅
+- [x] Vercel → Environment Variables → `META_PAGE_ACCESS_TOKEN` update → **Redeploy** ✅
+- [x] Purana (leaked) token revoke — `oauth/revoke` API ne100 diya, isliye **App Access Remove** (`facebook.com/settings/applications` → Remove) se kiya; Muse AI ne verify kiya: **old token = invalid (#190)** ✅
+- [x] Final check: `graph.facebook.com/me?fields=id,name` → `{"id":"1110846448784087","name":"Raees Decodes"}` ✅
+- Note: App Secret **reset nahi** hua (usse page token marne ki guarantee nahi thi — evidence mixed tha); App bhi delete nahi hua, sirf authorization remove + re-grant hui.
 
 ### 2.2 🤖 Security audit
 **Prompt:**
@@ -151,4 +152,4 @@ Goal: user aaye → **"Connect Instagram" dabaye** → apna account connect kare
 | Page | Raees Decodes (`1110846448784087`) |
 | Spec | `chatazad-v2-spec.md` |
 
-*Last updated: 30 Sep 2026 — Phase 0 complete. Phase 1.1 + 1.2 LIVE & tested. Phase 2.1/2.2/2.3 done (dashboard password gate LIVE, META_APP_SECRET signature verification LIVE). Pending on TUM: token rotate, Business Verification, App Review, Live mode, real comment test. Spec v2 has full ManyChat parity (6b/6c).*
+*Last updated: 30 Sep 2026 — Phase 0 complete. Phase 1.1 + 1.2 LIVE & tested. Phase 2.1 COMPLETE (leaked token revoked, never-expire token LIVE on Vercel) + 2.2/2.3 done (dashboard password gate LIVE, META_APP_SECRET signature verification LIVE). Pending on TUM: Business Verification, App Review, Live mode, real comment test. Spec v2 has full ManyChat parity (6b/6c).*

@@ -32,6 +32,12 @@ export interface StoredEvent {
   createdAt: string;
 }
 
+export interface StoredUser {
+  id: string;
+  email: string;
+  passwordHash: string;
+}
+
 export interface Contact {
   id: string;
   platform: 'instagram' | 'facebook';
@@ -53,6 +59,10 @@ export interface DashboardStats {
 }
 
 export interface Storage {
+  // --- users (v2 auth — email/password accounts) ---
+  createUser(user: { email: string; passwordHash: string }): Promise<StoredUser>;
+  findUserByEmail(email: string): Promise<StoredUser | null>;
+
   // --- quick-reply triggers (legacy simple triggers) ---
   listTriggers(): Promise<Trigger[]>;
   createTrigger(t: Omit<Trigger, 'id' | 'createdAt'>): Promise<Trigger>;
@@ -162,6 +172,14 @@ CREATE TABLE IF NOT EXISTS settings (
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );`;
 
+const CREATE_USERS_SQL = `
+CREATE TABLE IF NOT EXISTS users (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email         TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);`;
+
 function rowToTrigger(row: {
   id: string;
   keyword: string;
@@ -251,7 +269,28 @@ class PostgresStorage implements Storage {
     await this.pool.query(CREATE_FLOWS_SQL);
     await this.pool.query(CREATE_CONTACTS_SQL);
     await this.pool.query(CREATE_SETTINGS_SQL);
+    await this.pool.query(CREATE_USERS_SQL);
     this.ensured = true;
+  }
+
+  // ----- users (v2 auth) -----
+  async createUser(user: { email: string; passwordHash: string }): Promise<StoredUser> {
+    await this.ensureSchema();
+    const { rows } = await this.pool.query(
+      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email',
+      [user.email, user.passwordHash],
+    );
+    return { id: rows[0].id, email: rows[0].email, passwordHash: user.passwordHash };
+  }
+
+  async findUserByEmail(email: string): Promise<StoredUser | null> {
+    await this.ensureSchema();
+    const { rows } = await this.pool.query(
+      'SELECT id, email, password_hash FROM users WHERE email = $1',
+      [email],
+    );
+    if (rows.length === 0) return null;
+    return { id: rows[0].id, email: rows[0].email, passwordHash: rows[0].password_hash };
   }
 
   // ----- triggers -----
@@ -539,6 +578,7 @@ class JsonFileStorage implements Storage {
   private flowsFile = path.join(this.dir, 'flows.json');
   private contactsFile = path.join(this.dir, 'contacts.json');
   private settingsFile = path.join(this.dir, 'settings.json');
+  private usersFile = path.join(this.dir, 'users.json');
 
   private async readJson<T>(file: string, fallback: T): Promise<T> {
     try {
@@ -552,6 +592,27 @@ class JsonFileStorage implements Storage {
   private async writeJson(file: string, value: unknown): Promise<void> {
     await fs.mkdir(this.dir, { recursive: true });
     await fs.writeFile(file, JSON.stringify(value, null, 2), 'utf8');
+  }
+
+  // ----- users (v2 auth) -----
+  async createUser(user: { email: string; passwordHash: string }): Promise<StoredUser> {
+    const users = await this.readJson<StoredUser[]>(this.usersFile, []);
+    if (users.some((u) => u.email === user.email)) {
+      throw new Error('Email already registered');
+    }
+    const created: StoredUser = {
+      id: crypto.randomUUID(),
+      email: user.email,
+      passwordHash: user.passwordHash,
+    };
+    users.push(created);
+    await this.writeJson(this.usersFile, users);
+    return created;
+  }
+
+  async findUserByEmail(email: string): Promise<StoredUser | null> {
+    const users = await this.readJson<StoredUser[]>(this.usersFile, []);
+    return users.find((u) => u.email === email) ?? null;
   }
 
   // ----- triggers -----
