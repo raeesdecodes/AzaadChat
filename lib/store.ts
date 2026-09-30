@@ -92,6 +92,12 @@ export interface Storage {
   setSetting(key: string, value: string): Promise<void>;
   getStats(): Promise<DashboardStats>;
   clearAll(): Promise<void>;
+
+  // --- data deletion (Meta data-deletion callback / user requests) ---
+  deleteUserData(senderId: string): Promise<{
+    contactsDeleted: number;
+    eventsDeleted: number;
+  }>;
 }
 
 export const DEFAULT_RETENTION_LIMIT = 200;
@@ -496,6 +502,28 @@ class PostgresStorage implements Storage {
     await this.pool.query('DELETE FROM contacts');
     await this.pool.query('DELETE FROM events');
   }
+
+  async deleteUserData(senderId: string): Promise<{
+    contactsDeleted: number;
+    eventsDeleted: number;
+  }> {
+    await this.ensureSchema();
+    const id = senderId.trim();
+    if (!id) return { contactsDeleted: 0, eventsDeleted: 0 };
+
+    const contacts = await this.pool.query(
+      'DELETE FROM contacts WHERE sender_id = $1 OR sender_id = $2',
+      [id, `comment:${id}`],
+    );
+    const events = await this.pool.query(
+      'DELETE FROM events WHERE summary LIKE $1',
+      [`%${id}%`],
+    );
+    return {
+      contactsDeleted: contacts.rowCount ?? 0,
+      eventsDeleted: events.rowCount ?? 0,
+    };
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -750,6 +778,29 @@ class JsonFileStorage implements Storage {
     await this.writeJson(this.flowsFile, []);
     await this.writeJson(this.contactsFile, []);
     await this.writeJson(this.eventsFile, []);
+  }
+
+  async deleteUserData(senderId: string): Promise<{
+    contactsDeleted: number;
+    eventsDeleted: number;
+  }> {
+    const id = senderId.trim();
+    if (!id) return { contactsDeleted: 0, eventsDeleted: 0 };
+
+    const contacts = await this.readJson<JsonContact[]>(this.contactsFile, []);
+    const keepContacts = contacts.filter(
+      (c) => c.senderId !== id && c.senderId !== `comment:${id}`,
+    );
+    const events = await this.readJson<StoredEvent[]>(this.eventsFile, []);
+    const keepEvents = events.filter((e) => !e.summary.includes(id));
+
+    await this.writeJson(this.contactsFile, keepContacts);
+    await this.writeJson(this.eventsFile, keepEvents);
+
+    return {
+      contactsDeleted: contacts.length - keepContacts.length,
+      eventsDeleted: events.length - keepEvents.length,
+    };
   }
 }
 

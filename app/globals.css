@@ -271,7 +271,7 @@ button.small, .btn.small { padding: 0.35rem 0.75rem; font-size: 0.82rem; }
 .field { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.9rem; }
 .field > span { color: var(--muted); font-size: 0.83rem; font-weight: 600; }
 
-input[type="text"], input[type="number"], input:not([type]), select, textarea {
+input[type="text"], input[type="number"], input[type="password"], input[type="email"], input:not([type]), select, textarea {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 9px;
@@ -467,3 +467,54 @@ footer.page-foot { margin-top: 2.5rem; text-align: center; color: var(--muted-2)
   .flow-side { width: 100%; max-height: none; }
   .form-grid { grid-template-columns: 1fr; }
 }
+
+/* ---------- public legal pages (privacy / terms) ---------- */
+
+.public-page {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 3rem 1.5rem 4rem;
+}
+
+.legal {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.legal .page-head { margin-bottom: 1.75rem; }
+
+.legal .card p:last-child,
+.legal .card ul:last-child { margin-bottom: 0; }
+
+.legal .card p { color: var(--text); }
+.legal .card ul { margin: 0.4rem 0 0.8rem; padding-left: 1.2rem; color: var(--text); }
+.legal .card li { margin-bottom: 0.35rem; }
+
+.legal a { color: var(--accent); }
+
+.legal code {
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.05rem 0.35rem;
+  font-size: 0.88em;
+}
+
+/* ---------- login gate ---------- */
+
+.login-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  margin-bottom: 0;
+  padding: 1.75rem;
+}
+
+.login-card label { display: block; font-weight: 600; }

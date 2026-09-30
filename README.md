@@ -79,6 +79,31 @@ Meta while developing.
 The app is n8n-style self-hosted: **each deploy uses its own Vercel project,
 database and Meta app**, so there's no shared backend to outgrow.
 
+## 🔐 Environment variables checklist
+
+Set these in **Vercel → Project Settings → Environment Variables**, then
+**Redeploy** (env changes only apply after a new deployment).
+
+| Variable | Required? | What it is |
+|---|---|---|
+| `DATABASE_URL` | **Strongly recommended** | Postgres connection string (Neon/Supabase). Without it the app falls back to local JSON files, which **do not persist on Vercel**. |
+| `META_VERIFY_TOKEN` | **Required** | Random string you invent (`openssl rand -hex 32`). Meta sends it back during webhook verification; must match exactly. |
+| `META_PAGE_ACCESS_TOKEN` | **Required** | Page access token used to send DMs, comment replies and private replies. Rotate it if it was ever pasted in chat/logs. |
+| `META_APP_SECRET` | **Required in practice** | App Secret from `developers.facebook.com → Settings → Basic`. When set, every webhook POST is signature-verified (`X-Hub-Signature-256`); `/api/data-deletion` refuses to run without it. |
+| `META_IG_USER_ID` | Optional | Instagram business/creator account id — informational, shown in the dashboard. |
+| `META_APP_ID` | Optional (v1) / **Required for v2 OAuth** | Meta app id. Not used by v1; v2 "Connect Instagram" OAuth needs it. |
+
+Quick health check after deploying: open `/settings` — each variable shows a
+green/red dot (only presence is shown, never the value).
+
+## 📄 Public legal endpoints (required for Meta App Review)
+
+| URL | Purpose |
+|---|---|
+| `/privacy` | Privacy Policy |
+| `/terms` | Terms of Service |
+| `/api/data-deletion` | Meta data-deletion callback (POST `signed_request`); `GET ?user_id=` returns the stored confirmation code |
+
 ## 📨 Meta setup summary
 
 - Create a Business-type app at `developers.facebook.com`, add the

@@ -95,12 +95,19 @@ function Icon({ name }: { name: string }) {
   }
 }
 
+const PUBLIC_PATHS = ['/privacy', '/terms'];
+
 export default function Shell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
 
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname.startsWith(href);
+
+  // Legal pages are public: no dashboard chrome around them.
+  if (PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+    return <div className="public-page">{children}</div>;
+  }
 
   return (
     <div className={`shell ${collapsed ? 'collapsed' : ''}`}>

@@ -1,5 +1,6 @@
 import { getStore, DEFAULT_RETENTION_LIMIT } from '@/lib/store';
 import { saveSettingsAction, clearAllDataAction } from './actions';
+import { logoutAction } from '../login/actions';
 import DangerZone from '@/components/DangerZone';
 
 export const dynamic = 'force-dynamic';
@@ -91,6 +92,40 @@ export default async function SettingsPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="card">
+        <h2>Security</h2>
+        <ul className="checklist">
+          <li style={{ padding: '0.5rem 0' }}>
+            <div className="step-body">
+              <code>DASHBOARD_PASSWORD</code>{' '}
+              <span className="muted small">
+                locks every dashboard page and action behind a password
+              </span>
+            </div>
+            {statusDot(
+              !!process.env.DASHBOARD_PASSWORD,
+              process.env.DASHBOARD_PASSWORD ? 'set — dashboard locked' : 'not set — dashboard open',
+            )}
+          </li>
+          <li style={{ padding: '0.5rem 0' }}>
+            <div className="step-body">
+              <code>META_APP_SECRET</code>{' '}
+              <span className="muted small">
+                webhook signature + data-deletion verification
+              </span>
+            </div>
+            {statusDot(!!process.env.META_APP_SECRET, !!process.env.META_APP_SECRET ? 'set' : 'not set')}
+          </li>
+        </ul>
+        <div className="form-actions">
+          <form action={logoutAction}>
+            <button type="submit" className="ghost">
+              Sign out
+            </button>
+          </form>
+        </div>
       </section>
 
       <section className="card">
