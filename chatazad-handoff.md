@@ -13,7 +13,7 @@
 - Page `Raees Decodes` = `1110846448784087`, IG `@raees.decodes`
 - User legal name: **`Raees Awan`** (CNIC wala naam), address: `House No 128/A, Muhalla Makka Basti Frontier Colony S.I.T.E, Karachi West, Karachi-75800`, phone `+923160381847`
 - Meta helper: **Muse AI** (apna browser hai — login/dedicated Meta clicks ke liye use ho raha hai; use kabhi App Secret/secret na dikhao)
-- Vercel env vars set: `DASHBOARD_PASSWORD` (multi), `META_APP_SECRET`, `META_PAGE_ACCESS_TOKEN` (**never-expire, 30 Sep ko rotate**), `META_VERIFY_TOKEN`, `DATABASE_URL`
+- Vercel env vars set: `DASHBOARD_PASSWORD` (multi), `META_APP_SECRET`, `META_PAGE_ACCESS_TOKEN` (**never-expire, 30 Sep ko rotate**), `META_VERIFY_TOKEN`, `DATABASE_URL`, `AUTH_SECRET` (**1 Oct ko set kiya — live ✅**)
 
 ## B. DONE (phases)
 - **Phase 0**: codebase scan + spec docs read.
@@ -35,7 +35,7 @@
 - **Decision:** naam verify = **ABBU KI BANK STATEMENT** (faisla: docs abbu ke naam — consent wala, stable; friend wala DROP)
 - ⚠️ Business name field abhi `Raees Awan` hai → **ABBU ke naam (CNIC jaisa exact) mein BADALNA HAI**
 
-### Kal (31 Sep 2026) ke steps — inhi se continue karna:
+### Kal (1/2 Oct 2026) ke steps — inhi se continue karna:
 1. Abbu se **bank statement** lo (net-banking PDF ya branch stamped, recent ≤3 mahine, saaf, naam abbu ka)
 2. Meta form **Back** → Business name = **abbu ka exact naam** → address = statement wala → Next
 3. **WhatsApp method** → OTP abbu ke phone par → daalo
@@ -59,15 +59,15 @@
 
 ## F. Workflow (jo chal raha hai)
 `AI plan deta → user karta → screenshot/result → AI verify → agla step`. One task at a time.
-**1 Oct 2026 raat:** Step 1 auth commit+push (`4a748b5`) — kal Phase 1.3 (bank statement wale din) + v2 Step 3 se continue.
+**1 Oct 2026 raat — Aaj yahan tak pahunche:** v2 Step 1 (auth) code → build PASS → commits `4a748b5`, `53164f5`, `5c01517` push hue → `AUTH_SECRET` Vercel par set → **prod E2E sab PASS** (signup → login → dashboard 200).
+**Kal ka do rasta:** (1) **Phase 1.3** — bank statement wale Meta steps (user ka kaam), aur/agar (2) **v2 Step 3** — Meta OAuth connect flow (AI ka kaam).
 
 ## G. Pending code checklist → `chatazad-dev-checklist.md`
 - **Step 2 (lib/crypto.ts) ✅ DONE 30 Sep raat** — AES-256-GCM + `.env.example` + smoke test + build PASS
-- **Step 1 (NextAuth auth) ✅ DONE 1 Oct raat** — `/signup` + `/login` email form, JWT sessions, dual middleware gate (legacy `cz_session` fallback), `users` table, store smoke + **HTTP E2E PASS** (login → `/settings` 200; wrong-pass 307)
-  - Debug note: Auth.js v5 = cookie `authjs.session-token`, **salt = cookie name** (not `""`); `trustHost: true` zaroori
-  - ⚠️ **Vercel mein `AUTH_SECRET` add karna baqi** (`openssl rand -base64 32`)
-- Next code: **Step 3 (OAuth connect flow)** — user poochh kar bola hai "continue" toh yahi agla hai
-- **Sab kuch COMMIT + PUSH ho chuka hai — `4a748b5` + `53164f5` (master → Vercel auto-deploy)**: AGENTS.md, handoff/checklist docs, auth (auth.ts, middleware, login/signup, [...nextauth]), lib/crypto.ts + smoke scripts, users table, .env.example (AUTH_SECRET + ENCRYPTION_KEY)
+- **Step 1 (NextAuth auth) ✅ DONE + LIVE 1 Oct** — `/signup` + `/login` email form, JWT sessions, dual middleware gate (legacy `cz_session` fallback), `users` table, store smoke + HTTP E2E PASS + **PROD E2E PASS** (see below)
+  - Debug notes (yaad rakhna): Auth.js v5 cookie = `authjs.session-token` / `__Secure-authjs.session-token`, **salt = cookie name** (not `""`); `trustHost: true` zaroori; signup form POST = **multipart** (urlencoded nahi chalta)
+- Next code: **Step 3 (OAuth connect flow)** — agla AI wala code step (user poochhe ya "continue" bole toh yahi)
+- **Commits pushed (master → Vercel live):** `4a748b5` (auth+crypto+docs), `53164f5` (handoff), `5c01517` (prod E2E notes)
 - **`AUTH_SECRET` Vercel par SET + LIVE ✅ (1 Oct)** — ab prod email-login kaam karta hai
 - **PROD E2E PASS ✅ (1 Oct)**: real signup (multipart form → 303 `/login?created=1`, user prod DB mein) → login (302 + `__Secure-authjs.session-token`) → `/settings`+`/`+`/broadcasts` = **200** session ke saath; bina session/galat password = **307**. Test account: `prod-smoke3@example.com` (throwaway, baad mein hata sakte hain)
 - Resume files: `AGENTS.md` (bootstrap), `chatazad-handoff.md` (ye), `chatazad-dev-checklist.md` (code)
