@@ -59,7 +59,7 @@
 
 ## F. Workflow (jo chal raha hai)
 `AI plan deta → user karta → screenshot/result → AI verify → agla step`. One task at a time.
-Raat ko user so gaya (30 Sep) — **kal statement wale din se continue**.
+**1 Oct 2026 raat:** Step 1 auth commit+push (`4a748b5`) — kal Phase 1.3 (bank statement wale din) + v2 Step 3 se continue.
 
 ## G. Pending code checklist → `chatazad-dev-checklist.md`
 - **Step 2 (lib/crypto.ts) ✅ DONE 30 Sep raat** — AES-256-GCM + `.env.example` + smoke test + build PASS
@@ -67,6 +67,6 @@ Raat ko user so gaya (30 Sep) — **kal statement wale din se continue**.
   - Debug note: Auth.js v5 = cookie `authjs.session-token`, **salt = cookie name** (not `""`); `trustHost: true` zaroori
   - ⚠️ **Vercel mein `AUTH_SECRET` add karna baqi** (`openssl rand -base64 32`)
 - Next code: **Step 3 (OAuth connect flow)** — user poochh kar bola hai "continue" toh yahi agla hai
-- Files (uncommitted): `AGENTS.md`, `chatazad-handoff.md`, `chatazad-dev-checklist.md`, `auth.ts`, `middleware.ts`, `app/{login,signup}/**`, `app/api/auth/[...nextauth]/**`, `lib/{store,crypto}.ts`, `db/schema.sql`, `.env.example`, `scripts/smoke-*.mts`, `scripts/e2e-user.mts`
+- **Sab kuch COMMIT + PUSH ho chuka hai — `4a748b5` (master → Vercel auto-deploy)**: AGENTS.md, handoff/checklist docs, auth (auth.ts, middleware, login/signup, [...nextauth]), lib/crypto.ts + smoke scripts, users table, .env.example (AUTH_SECRET + ENCRYPTION_KEY)
 - Resume files: `AGENTS.md` (bootstrap), `chatazad-handoff.md` (ye), `chatazad-dev-checklist.md` (code)
-- ⚠️ New files **commit nahi hue** — user ke "commit" kehne par commit karna
+- Vercel env mein **`AUTH_SECRET` add karna abhi bhi baqi** (`openssl rand -base64 32`) — warna prod email-login session nahi dega (legacy password gate chalta rahega)
