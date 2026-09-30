@@ -1,6 +1,7 @@
 import { getStore, DEFAULT_RETENTION_LIMIT } from '@/lib/store';
 import { saveSettingsAction, clearAllDataAction } from './actions';
 import { logoutAction } from '../login/actions';
+import { passwordList } from '@/lib/auth';
 import DangerZone from '@/components/DangerZone';
 
 export const dynamic = 'force-dynamic';
@@ -37,6 +38,8 @@ export default async function SettingsPage() {
     { name: 'META_APP_SECRET', ok: !!process.env.META_APP_SECRET, note: 'recommended: verifies webhook signatures' },
     { name: 'DATABASE_URL', ok: !!process.env.DATABASE_URL, note: 'recommended: Postgres (else local JSON, dev only)' },
   ];
+
+  const passwordCount = passwordList(process.env.DASHBOARD_PASSWORD).length;
 
   return (
     <div>
@@ -106,7 +109,9 @@ export default async function SettingsPage() {
             </div>
             {statusDot(
               !!process.env.DASHBOARD_PASSWORD,
-              process.env.DASHBOARD_PASSWORD ? 'set — dashboard locked' : 'not set — dashboard open',
+              process.env.DASHBOARD_PASSWORD
+                ? `set — dashboard locked (${passwordCount} password${passwordCount === 1 ? '' : 's'})`
+                : 'not set — dashboard open',
             )}
           </li>
           <li style={{ padding: '0.5rem 0' }}>

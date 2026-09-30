@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { loginAction } from './actions';
+import { passwordList } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +15,7 @@ export default function LoginPage({
   searchParams: { error?: string; next?: string };
 }) {
   const configured = !!process.env.DASHBOARD_PASSWORD;
+  const passwordCount = passwordList(process.env.DASHBOARD_PASSWORD).length;
   const next = searchParams.next ?? '/';
 
   return (
@@ -31,7 +33,9 @@ export default function LoginPage({
         {configured ? (
           <>
             <p className="muted small" style={{ marginTop: 0 }}>
-              This dashboard is password-protected.
+              {passwordCount > 1
+                ? 'This dashboard is password-protected — any of your configured passwords will work.'
+                : 'This dashboard is password-protected.'}
             </p>
 
             {searchParams.error ? (

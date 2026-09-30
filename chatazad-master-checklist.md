@@ -29,14 +29,15 @@ Neeche Meta ki **standard publish requirements** hain (ye fixed hain — har app
 **Prompt (Claude Code / OpenCode):**
 > `Repo mein do public pages banao: /privacy aur /terms (Next.js App Router). Privacy Policy mein likho: kaunsa data store hota hai (contacts: sender ID + name; events: webhook logs), data Meta webhooks se aata hai, user data-deletion kaise request kare (email + /api/data-deletion endpoint), data kabhi becha nahi jata. Terms mein likho: service self-hosted automation tool hai, user apne Meta app/tokens ka zimmedar hai, acceptable use (spam nahi). Simple, professional English. Build pass karo.`
 
-- [ ] Pages live: `azaad-chat.vercel.app/privacy`, `/terms` khul rahe hain
+- [x] Pages live: `azaad-chat.vercel.app/privacy`, `/terms` khul rahe hain ✅ 30 Sep 2026 (tested 200, sidebar-less standalone pages)
 
 ### 1.2 🤖 Data Deletion Callback endpoint
 Meta App Review iske baghair approve nahi karta.
 **Prompt:**
 > `POST /api/data-deletion/route.ts banao (Next.js App Router). Meta ka data-deletion request aayega (signed_request). Endpoint: request verify kare, us user ka data (contacts + events, senderId se match) DB se delete kare, aur JSON mein confirmation code + status URL return kare. lib/store.ts mein deleteUserData(senderId) function add karo. Koi secret hard-code mat karo. Build pass karo.`
 
-- [ ] Endpoint live, callback URL ready: `https://azaad-chat.vercel.app/api/data-deletion`
+- [x] Endpoint live, callback URL ready: `https://azaad-chat.vercel.app/api/data-deletion` ✅ (signed_request HMAC verify + confirmation code + `GET ?user_id=` lookup; tampered signature = 403)
+- [x] ⚠️ **Vercel mein `META_APP_SECRET` add kiya** ✅ — ab tampered signature par `403 invalid_signature` aa raha hai (pehle 503 tha), matlab signature verification LIVE hai
 
 ### 1.3 🧑 Business Verification (Meta dashboard — manual)
 - [ ] developers.facebook.com → App Settings → **Business Verification** kholo
@@ -80,7 +81,19 @@ Chat mein kabhi raw token aaya tha — public launch se pehle badlo:
 **Prompt:**
 > `Repo ka security audit karo: (1) verify karo META_APP_SECRET set hone pe webhook signature (X-Hub-Signature-256) ENFORCE hoti hai — agar nahi to enforce karo; (2) koi bhi API route secret/Token response mein leak to nahi karta; (3) app/api/webhook/route.ts ke neeche wali stale comment ("never awaited") theek karo kyunke processEvents ab awaited hai; (4) Vercel env vars ki checklist banao (DATABASE_URL, META_VERIFY_TOKEN, META_PAGE_ACCESS_TOKEN, META_APP_SECRET, META_APP_ID, META_IG_USER_ID — kaun required, kaun optional) aur README mein likho. Build pass karo.`
 
-### 2.3 🧑 Facebook side test (optional)
+- [x] (1) Signature verify code mein enforced hai (`app/api/webhook/route.ts:80`) ✅ — par **chalta tabhi hai jab `META_APP_SECRET` set ho** (Vercel mein abhi set nahi)
+- [x] (2) Koi bhi route secret/token response mein nahi bhejta — settings sirf "set/not set" dikhata hai ✅
+- [x] (3) Stale "never awaited" comment nahi mila (header already theek hai) ✅
+- [x] (4) README mein env-var checklist + legal endpoints table add ki ✅
+
+### 2.3 ➕ Dashboard password gate (naya — public launch se pehle ZAROORI)
+Purane code mein koi auth nahi tha: URL jaanta har koi broadcast bhej sakta tha (tumhare Page token se) ya saara data wipe kar sakta tha.
+- [x] `middleware.ts` + `lib/auth.ts` + `/login` — env `DASHBOARD_PASSWORD` set karte hi saara dashboard lock ✅
+- [x] `/api/webhook`, `/api/data-deletion`, `/privacy`, `/terms` hamesha khule (Meta ko login nahi kar sakta) ✅
+- [x] Settings → Security card: password status + Sign out ✅
+- [x] ⚠️ **Vercel mein `DASHBOARD_PASSWORD` add kiya** ✅ — `/`, `/settings`, `/flows` ab `307 → /login` redirect ho rahe hain; `/privacy`, `/terms`, `/login`, `/api/*` khule hain
+
+### 2.4 🧑 Facebook side test (optional)
 - [ ] FB Page ki post pe comment → auto-reply/DM check
 
 ---
@@ -138,4 +151,4 @@ Goal: user aaye → **"Connect Instagram" dabaye** → apna account connect kare
 | Page | Raees Decodes (`1110846448784087`) |
 | Spec | `chatazad-v2-spec.md` |
 
-*Last updated: 30 Sep 2026 — Phase 0 complete, Phase 1 ready to start. Spec v2 updated with full ManyChat parity (6b/6c).*
+*Last updated: 30 Sep 2026 — Phase 0 complete. Phase 1.1 + 1.2 LIVE & tested. Phase 2.1/2.2/2.3 done (dashboard password gate LIVE, META_APP_SECRET signature verification LIVE). Pending on TUM: token rotate, Business Verification, App Review, Live mode, real comment test. Spec v2 has full ManyChat parity (6b/6c).*

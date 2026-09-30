@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { SESSION_COOKIE, sessionToken } from '@/lib/auth';
+import { SESSION_COOKIE, sessionToken, passwordList } from '@/lib/auth';
 
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
@@ -15,21 +15,31 @@ function safeNext(raw: string | null): string {
 }
 
 export async function loginAction(formData: FormData): Promise<void> {
-  const password = process.env.DASHBOARD_PASSWORD;
+  const rawEnv = process.env.DASHBOARD_PASSWORD;
   const next = safeNext(String(formData.get('next') ?? ''));
   const attempt = String(formData.get('password') ?? '');
+  const passwords = passwordList(rawEnv);
 
-  if (!password) {
+  if (passwords.length === 0) {
     // Nothing to authenticate against — let them straight in.
     redirect(next);
   }
 
-  if (attempt !== password) {
+  // Every configured password is accepted (env may hold several,
+  // comma-separated). Compare against all of them.
+  let matched: string | null = null;
+  for (const candidate of passwords) {
+    if (candidate.length === attempt.length && candidate === attempt) {
+      matched = candidate;
+    }
+  }
+
+  if (!matched) {
     const params = new URLSearchParams({ error: '1', next });
     redirect(`/login?${params.toString()}`);
   }
 
-  const token = await sessionToken(password);
+  const token = await sessionToken(matched);
   cookies().set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
