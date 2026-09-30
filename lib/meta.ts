@@ -22,6 +22,36 @@ export function verifyWebhookSignature(
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
+/**
+ * Turn Meta's error body into a short, human-readable reason.
+ * Meta answers with {error:{message,type,code,error_subcode}} — surface it
+ * so the Activity log shows *why* a send failed instead of a bare status code.
+ */
+function graphErrorDetail(data: unknown): string {
+  if (data && typeof data === 'object') {
+    const err = (data as { error?: Record<string, unknown> }).error;
+    if (err && typeof err === 'object') {
+      const message = typeof err.message === 'string' ? err.message : '';
+      const type = typeof err.type === 'string' ? err.type : '';
+      const code =
+        typeof err.code === 'number' ? `#${err.code}` : '';
+      const sub =
+        typeof err.error_subcode === 'number' ? `.${err.error_subcode}` : '';
+      const bits = [message, [type, code && sub ? code + sub : code].filter(Boolean).join(' ')]
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (bits.length) return bits.join(' — ');
+    }
+    try {
+      const raw = JSON.stringify(data);
+      if (raw && raw !== '{}') return raw.slice(0, 300);
+    } catch {
+      // fall through
+    }
+  }
+  return 'no error body returned by Meta';
+}
+
 async function graphPost(
   path: string,
   pageAccessToken: string,
@@ -39,8 +69,9 @@ async function graphPost(
     // non-JSON error body; keep data as null
   }
   if (!res.ok) {
+    const detail = graphErrorDetail(data);
     console.error(`[meta] POST ${path} failed (${res.status})`, data);
-    throw new Error(`Graph API ${path} failed with status ${res.status}`);
+    throw new Error(`Graph API ${path} failed with status ${res.status}: ${detail}`);
   }
   console.log(`[meta] POST ${path} ok`);
   return data;
